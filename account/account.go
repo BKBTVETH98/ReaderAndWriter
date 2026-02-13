@@ -7,52 +7,55 @@ import (
 )
 
 type Account struct { //структура аккаунта
-	login string
-	pass  string
+	Login string `json:"login"`
+	Pass  string `json:"pass"`
 }
 
 func (acc *Account) getUser() { //метод вывода структуры используя указатель на структуру
-	fmt.Println()
-	fmt.Println("Вывод структуры")
-	fmt.Printf("login: %s\n", acc.login)
-	fmt.Println()
-	readFile()
-	fmt.Println()
+
+	fmt.Println(NewVault().Accounts)
 }
 
 func (acc *Account) makeAccount() { //метод создания аккаунта используя указатель на структуру
 
 	fmt.Println()
 	fmt.Print("Введи желаемый логин - ")
-	fmt.Scan(&acc.login)
+	fmt.Scan(&acc.Login)
 	fmt.Print("Введи password - ")
-	fmt.Scan(&acc.pass)
+	fmt.Scan(&acc.Pass)
 	fmt.Println("Успешное  создание аккаунта")
 	fmt.Println()
-	acc.writeFile()
+
+	vault := NewVault()
+	vault.AddAccount(*acc)
+	data, err := vault.ToBytes()
+	if err != nil {
+		fmt.Println("Не удалось преобразовать json")
+		return
+	}
+	acc.writeFile(data)
 
 }
 
 func (acc *Account) deleteUser() {
 	fmt.Println("Удаление пользователя из файла и структуры")
-	acc.login = ""
-	acc.pass = ""
-	acc.writeFile()
+	acc.Login = ""
+	acc.Pass = ""
 
 	*acc = Account{} //очищаем структуру
 	fmt.Println("Пользователь удален из структуры и файла")
 	acc.getUser() //проверяем что структура очищена
 }
 
-func (acc *Account) writeFile() {
+func (acc *Account) writeFile(content []byte) {
 
-	file, err := os.Create("account.txt")
+	file, err := os.Create("account.json")
 
 	if err != nil {
 		fmt.Printf("Ошибка - %s", err)
 	}
 
-	_, err = file.WriteString("login: " + acc.login + "\n" + "pass: " + acc.pass + "\n")
+	_, err = file.Write(content)
 
 	if err != nil {
 		fmt.Printf("Ошибка - %s", err)
@@ -65,17 +68,16 @@ func (acc *Account) writeFile() {
 
 }
 
-func readFile() {
+func readFile(name string) ([]byte, error) {
 
-	readFile, err := os.ReadFile("account.txt")
+	readFile, err := os.ReadFile(name)
 
 	if err != nil {
 		fmt.Println("Ошибка чтения ", err)
-		return
+		return nil, err
 	}
 
-	fmt.Printf("Файл содержит \n%s", readFile)
-	fmt.Println()
+	return readFile, nil
 }
 
 func (acc *Account) ControlActions() error {
@@ -86,17 +88,18 @@ func (acc *Account) ControlActions() error {
 	fmt.Println("2 - вывести структуру и прочитать из файла")
 	fmt.Println("3 - Удалить пользователя из файла и структуры")
 
-	control := map[int]func(){
+	control := map[int]any{
 		1: acc.makeAccount,
 		2: acc.getUser,
 		3: acc.deleteUser,
 	}
+
 	var action int
 
 	fmt.Scan(&action)
 
 	if actionFunc, ok := control[action]; ok {
-		actionFunc()
+		actionFunc.(func())()
 	} else {
 		fmt.Println()
 		fmt.Println("Неверный выбор действия")
