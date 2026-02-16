@@ -10,14 +10,13 @@ func WriteFile(content []byte) {
 	file, err := os.Create("account.json")
 
 	if err != nil {
-		fmt.Printf("Ошибка - %w", err)
+		fmt.Printf("Ошибка - %s", err)
 	}
 	defer file.Close()
-
 	_, err = file.Write(content)
 
 	if err != nil {
-		fmt.Printf("Ошибка - %w", err)
+		fmt.Printf("Ошибка - %s", err)
 		return
 	}
 
