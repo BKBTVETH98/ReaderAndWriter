@@ -3,7 +3,6 @@ package account
 import (
 	"errors"
 	"fmt"
-	"os"
 )
 
 type Account struct { //структура аккаунта
@@ -28,56 +27,24 @@ func (acc *Account) makeAccount() { //метод создания аккаунт
 
 	vault := NewVault()
 	vault.AddAccount(*acc)
-	data, err := vault.ToBytes()
+
+	_, err := vault.ToBytes()
+
 	if err != nil {
 		fmt.Println("Не удалось преобразовать json")
 		return
 	}
-	acc.writeFile(data)
 
 }
 
 func (acc *Account) deleteUser() {
-	fmt.Println("Удаление пользователя из файла и структуры")
-	acc.Login = ""
-	acc.Pass = ""
+	fmt.Print("Введите логин пользователя для удаления: ")
+	var logForDelete string
+	fmt.Scan(&logForDelete)
+	NewVault().DeleteAccount(logForDelete)
 
-	*acc = Account{} //очищаем структуру
 	fmt.Println("Пользователь удален из структуры и файла")
 	acc.getUser() //проверяем что структура очищена
-}
-
-func (acc *Account) writeFile(content []byte) {
-
-	file, err := os.Create("account.json")
-
-	if err != nil {
-		fmt.Printf("Ошибка - %s", err)
-	}
-
-	_, err = file.Write(content)
-
-	if err != nil {
-		fmt.Printf("Ошибка - %s", err)
-		return
-	}
-
-	defer file.Close()
-	fmt.Println("Запись - ок")
-	fmt.Println()
-
-}
-
-func readFile(name string) ([]byte, error) {
-
-	readFile, err := os.ReadFile(name)
-
-	if err != nil {
-		fmt.Println("Ошибка чтения ", err)
-		return nil, err
-	}
-
-	return readFile, nil
 }
 
 func (acc *Account) ControlActions() error {
